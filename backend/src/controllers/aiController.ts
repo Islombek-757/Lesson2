@@ -2,7 +2,13 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const getOpenAIClient = (): OpenAI => {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+  return new OpenAI({ apiKey });
+};
 
 const SYSTEM_PROMPT = `You are an expert AI tutor for School OS, an educational platform. 
 Your role is to:
@@ -17,6 +23,7 @@ Format responses with markdown when appropriate.`;
 
 export const chatWithAI = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const openai = getOpenAIClient();
     const { messages, lessonContext } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
@@ -51,6 +58,7 @@ export const chatWithAI = async (req: AuthRequest, res: Response): Promise<void>
 
 export const summarizeLesson = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const openai = getOpenAIClient();
     const { content, title } = req.body;
 
     const response = await openai.chat.completions.create({
@@ -75,6 +83,7 @@ export const summarizeLesson = async (req: AuthRequest, res: Response): Promise<
 
 export const generateQuestions = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const openai = getOpenAIClient();
     const { content, title, count = 5 } = req.body;
 
     const response = await openai.chat.completions.create({
@@ -107,6 +116,7 @@ export const generateQuestions = async (req: AuthRequest, res: Response): Promis
 
 export const explainTopic = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const openai = getOpenAIClient();
     const { topic, level = 'intermediate' } = req.body;
 
     const response = await openai.chat.completions.create({
