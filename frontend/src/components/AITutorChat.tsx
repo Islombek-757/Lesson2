@@ -37,8 +37,12 @@ export default function AITutorChat({ lessonContext }: AITutorChatProps) {
     try {
       const res = await aiAPI.chat({ messages: newMessages, lessonContext });
       setMessages([...newMessages, { role: 'assistant', content: res.data.reply }]);
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to get AI response');
+    } catch (error: unknown) {
+      const message =
+        typeof error === 'object' && error && 'response' in error
+          ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+          : undefined;
+      toast.error(message || 'Failed to get AI response');
       setMessages([...newMessages, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
     } finally {
       setLoading(false);
@@ -53,14 +57,15 @@ export default function AITutorChat({ lessonContext }: AITutorChatProps) {
   ];
 
   return (
-    <div className="glass rounded-2xl h-[600px] flex flex-col">
-      <div className="p-4 border-b border-white/10 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white">
+    <div className="rounded-3xl h-[640px] flex flex-col border border-black/10 dark:border-white/10 bg-white/80 dark:bg-slate-900/65 backdrop-blur-sm overflow-hidden shadow-[0_12px_35px_rgba(15,23,42,0.08)]">
+      <div className="h-2 bg-[linear-gradient(90deg,#0ea5e9_0%,#14b8a6_55%,#f59e0b_100%)]" />
+      <div className="p-4 border-b border-black/10 dark:border-white/10 flex items-center gap-3 bg-black/[0.02] dark:bg-white/[0.02]">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-teal-500 flex items-center justify-center text-white">
           <Bot size={20} />
         </div>
         <div>
           <h3 className="font-semibold">AI Tutor</h3>
-          <p className="text-xs text-[var(--muted-foreground)]">Online • Ready to help</p>
+          <p className="text-xs text-[var(--muted-foreground)]">Classroom assistant • Ready to help</p>
         </div>
       </div>
 
@@ -75,8 +80,8 @@ export default function AITutorChat({ lessonContext }: AITutorChatProps) {
             <div
               className={`max-w-[80%] p-3 rounded-2xl ${
                 message.role === 'user'
-                  ? 'bg-indigo-500 text-white rounded-br-md'
-                  : 'bg-white/5 text-[var(--foreground)] rounded-bl-md'
+                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-br-md'
+                  : 'bg-sky-50 dark:bg-sky-500/10 text-[var(--foreground)] rounded-bl-md border border-sky-100 dark:border-sky-500/20'
               }`}
             >
               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -91,24 +96,24 @@ export default function AITutorChat({ lessonContext }: AITutorChatProps) {
 
         {loading && (
           <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-500 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-sky-500/20 flex items-center justify-center text-sky-500 shrink-0">
               <Bot size={16} />
             </div>
-            <div className="bg-white/5 p-3 rounded-2xl rounded-bl-md">
-              <Loader2 size={18} className="animate-spin text-indigo-500" />
+            <div className="bg-sky-50 dark:bg-sky-500/10 p-3 rounded-2xl rounded-bl-md border border-sky-100 dark:border-sky-500/20">
+              <Loader2 size={18} className="animate-spin text-sky-500" />
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t border-white/10">
+      <div className="p-4 border-t border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02]">
         <div className="flex gap-2 mb-3 overflow-x-auto">
           {quickPrompts.map((prompt) => (
             <button
               key={prompt}
               onClick={() => setInput(prompt)}
-              className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs whitespace-nowrap transition-colors flex items-center gap-1"
+              className="px-3 py-1.5 rounded-lg bg-[var(--card)] border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/10 text-xs whitespace-nowrap transition-colors flex items-center gap-1"
             >
               <Sparkles size={12} />
               {prompt}
@@ -122,12 +127,12 @@ export default function AITutorChat({ lessonContext }: AITutorChatProps) {
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Ask AI Tutor anything..."
-            className="flex-1 px-4 py-3 rounded-xl border border-white/20 bg-white/5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 px-4 py-3 rounded-xl border border-black/10 dark:border-white/10 bg-[var(--card)] focus:outline-none focus:ring-2 focus:ring-sky-500"
           />
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            className="w-12 h-12 rounded-xl bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white flex items-center justify-center transition-colors"
+            className="w-12 h-12 rounded-xl bg-sky-500 hover:bg-sky-600 disabled:opacity-50 disabled:cursor-not-allowed text-white flex items-center justify-center transition-colors"
           >
             <Send size={18} />
           </button>

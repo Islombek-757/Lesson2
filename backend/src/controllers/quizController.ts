@@ -31,10 +31,16 @@ export const getQuiz = async (req: AuthRequest, res: Response): Promise<void> =>
 
     if (!quiz || !quiz.isPublished) { res.status(404).json({ error: 'Quiz not found' }); return; }
 
-    // Strip correct answers for students
+    // Strip correct answers and normalize subdocuments into plain JSON-safe objects
+    const quizObj = quiz.toObject();
     const safeQuiz = {
-      ...quiz.toObject(),
-      questions: quiz.questions.map(({ correctAnswer: _ca, ...q }) => q)
+      ...quizObj,
+      questions: (quizObj.questions || []).map((q: any) => ({
+        _id: q._id,
+        question: q.question,
+        options: Array.isArray(q.options) ? q.options : [],
+        points: q.points || 0
+      }))
     };
 
     res.json({ success: true, quiz: safeQuiz });

@@ -190,7 +190,7 @@ export default function Navbar() {
                           </div>
                         </div>
                         {[
-                          { href: user.role === 'student' ? '/student/dashboard' : '/teacher/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+                          { href: user.role === 'student' ? '/student' : '/teacher', label: 'Dashboard', icon: LayoutDashboard },
                           { href: '/profile', label: 'Profile', icon: User },
                           { href: '/settings', label: 'Settings', icon: Settings }
                         ].map((item) => (

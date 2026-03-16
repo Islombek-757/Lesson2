@@ -10,6 +10,7 @@ interface QuizPlayerProps {
 }
 
 export default function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
+  const questions = Array.isArray(quiz?.questions) ? quiz.questions : [];
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [timeLeft, setTimeLeft] = useState(quiz.timeLimit || 600);
@@ -93,14 +94,25 @@ export default function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
     );
   }
 
-  const question = quiz.questions[currentQuestion];
-  const progress = ((currentQuestion + 1) / quiz.questions.length) * 100;
+  if (questions.length === 0) {
+    return (
+      <div className="glass rounded-2xl p-8 text-center">
+        <h2 className="text-2xl font-bold mb-2">Quiz is not available</h2>
+        <p className="text-[var(--muted-foreground)]">This quiz has no valid questions yet.</p>
+      </div>
+    );
+  }
+
+  const safeIndex = Math.min(currentQuestion, questions.length - 1);
+  const question = questions[safeIndex] || { question: 'Question unavailable', options: [] };
+  const options = Array.isArray(question.options) ? question.options : [];
+  const progress = ((safeIndex + 1) / questions.length) * 100;
 
   return (
     <div className="glass rounded-2xl p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <p className="text-sm text-[var(--muted-foreground)]">Question {currentQuestion + 1} of {quiz.questions.length}</p>
+          <p className="text-sm text-[var(--muted-foreground)]">Question {safeIndex + 1} of {questions.length}</p>
           <h2 className="text-xl font-bold mt-1">{quiz.title}</h2>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500/20 text-orange-500 font-semibold">
@@ -116,12 +128,12 @@ export default function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
       <div className="mb-8">
         <h3 className="text-xl font-semibold mb-6">{question.question}</h3>
         <div className="space-y-3">
-          {question.options.map((option: string, idx: number) => (
+          {options.map((option: string, idx: number) => (
             <button
               key={idx}
               onClick={() => selectAnswer(idx)}
               className={`w-full p-4 rounded-xl text-left transition-all border ${
-                answers[currentQuestion] === idx
+                answers[safeIndex] === idx
                   ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300'
                   : 'bg-white/5 border-white/10 hover:bg-white/10'
               }`}
@@ -136,13 +148,13 @@ export default function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
       <div className="flex items-center justify-between">
         <button
           onClick={() => setCurrentQuestion((prev) => Math.max(0, prev - 1))}
-          disabled={currentQuestion === 0}
+          disabled={safeIndex === 0}
           className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
         >
           <ChevronLeft size={18} /> Previous
         </button>
 
-        {currentQuestion === quiz.questions.length - 1 ? (
+        {safeIndex === questions.length - 1 ? (
           <button
             onClick={handleSubmit}
             disabled={submitting}
@@ -152,7 +164,7 @@ export default function QuizPlayer({ quiz, onComplete }: QuizPlayerProps) {
           </button>
         ) : (
           <button
-            onClick={() => setCurrentQuestion((prev) => Math.min(quiz.questions.length - 1, prev + 1))}
+            onClick={() => setCurrentQuestion((prev) => Math.min(questions.length - 1, prev + 1))}
             className="px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white flex items-center gap-2 transition-colors"
           >
             Next <ChevronRight size={18} />
